@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Quiz</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="container">
+    <div id="start">Start Quiz!</div>
+    <div id="quiz" style="display: none">
+        <div id="question"></div>
+        <div id="qImg"></div>
+        <div id="choices">
+            <div class="choice" id="A" onclick="checkAnswer('A')"></div>
+            <div class="choice" id="B" onclick="checkAnswer('B')"></div>
+            <div class="choice" id="C" onclick="checkAnswer('C')"></div>
+        </div>
+        <div id="timer">
+            <div id="counter"></div>
+            <div id="btimeGauge"></div>
+            <div id="timeGauge"></div>
+        </div>
+        <div id="progress"></div>
+    </div>
+    <div id="scoreContainer" style="display: none"></div>
+</div>
+<script src="quiz.js"></script>
+</body>
+<script>
+    // select all elements
+    const start = document.getElementById("start");
+    const quiz = document.getElementById("quiz");
+    const question = document.getElementById("question");
+    const qImg = document.getElementById("qImg");
+    const choiceA = document.getElementById("A");
+    const choiceB = document.getElementById("B");
+    const choiceC = document.getElementById("C");
+    const counter = document.getElementById("counter");
+    const timeGauge = document.getElementById("timeGauge");
+    const progress = document.getElementById("progress");
+    const scoreDiv = document.getElementById("scoreContainer");
+
+    // create our questions
+    let questions = [
+        {
+            question : "What type of water do Germans drink?",
+            imgSrc : "water.jpg",
+            choiceA : "Sparkling",
+            choiceB : "Regular tap",
+            choiceC : "They don't drink water",
+            correct : "A"
+        },{
+            question : "What type of beer do Germans not Drink?",
+            imgSrc : "beer.jpeg",
+            choiceA : "Lager",
+            choiceB : "Lite Beer",
+            choiceC : "Pilsner",
+            correct : "B"
+        },{
+            question : "Is it acceptable to be late?",
+            imgSrc : "late.png",
+            choiceA : "Depends",
+            choiceB : "Yes",
+            choiceC : "No",
+            correct : "C"
+        },
+        {
+            question : "What finger do you begin to count with?",
+            imgSrc : "fingers.jpg",
+            choiceA : "pinky",
+            choiceB : "index",
+            choiceC : "thumb",
+            correct : "C"
+        },
+        {
+            question : "What does BMW stand for?",
+            imgSrc : "bmw.png",
+            choiceA : "Buderschmitt Motor Works",
+            choiceB : "Bavaria's Mechanic Works",
+            choiceC : "Bavarian Motor Works",
+            correct : "C"
+        },{
+            question : "Best Soccer team in Germany's history?",
+            imgSrc : "soccer.jpg",
+            choiceA : "Dortmund",
+            choiceB : "FC Bayern",
+            choiceC : "FC Schalke 04",
+            correct : "B"
+        }, {
+            question : "Hi, mein Name ist",
+            imgSrc : "mynameis.jpg",
+            choiceA : "Hi, my name is",
+            choiceB : "Hi, is my name",
+            choiceC : "is my name hi",
+            correct : "A"
+        },{
+            question : "How many brands does volkswagen own?",
+            imgSrc : "vw.png",
+            choiceA : "3",
+            choiceB : "12",
+            choiceC : "6",
+            correct : "B"
+        },{
+            question : "Germany's National Dish?",
+            imgSrc : "currywurst.jpg",
+            choiceA : "Currywurst",
+            choiceB : "Sauerbraten",
+            choiceC : "Sauerkraut",
+            correct : "B"
+        },{
+            question : "Which month does Oktober fest begin?",
+            imgSrc : "oktober.jpg",
+            choiceA : "September",
+            choiceB : "October",
+            choiceC : "November",
+            correct : "A"
+        }
+    ];
+
+    // create some variables
+
+    const lastQuestion = questions.length - 1;
+    let runningQuestion = 0;
+    let count = 0;
+    const questionTime = 10; // 10s
+    const gaugeWidth = 150; // 150px
+    const gaugeUnit = gaugeWidth / questionTime;
+    let TIMER;
+    let score = 0;
+
+    // render a question
+    function renderQuestion(){
+        let q = questions[runningQuestion];
+
+        question.innerHTML = "<p>"+ q.question +"</p>";
+        qImg.innerHTML = "<img src="+ q.imgSrc +">";
+        choiceA.innerHTML = q.choiceA;
+        choiceB.innerHTML = q.choiceB;
+        choiceC.innerHTML = q.choiceC;
+    }
+
+    start.addEventListener("click",startQuiz);
+
+    // start quiz
+    function startQuiz(){
+        start.style.display = "none";
+        renderQuestion();
+        quiz.style.display = "block";
+        renderProgress();
+        renderCounter();
+        TIMER = setInterval(renderCounter,1000); // 1000ms = 1s
+    }
+
+    // render progress
+    function renderProgress(){
+        for(let qIndex = 0; qIndex <= lastQuestion; qIndex++){
+            progress.innerHTML += "<div class='prog' id="+ qIndex +"></div>";
+        }
+    }
+
+    // counter render
+
+    function renderCounter(){
+        if(count <= questionTime){
+            counter.innerHTML = count;
+            timeGauge.style.width = count * gaugeUnit + "px";
+            count++
+        }else{
+            count = 0;
+// change progress color to red
+            answerIsWrong();
+            if(runningQuestion < lastQuestion){
+                runningQuestion++;
+                renderQuestion();
+            }else{
+// end the quiz and show the score
+                clearInterval(TIMER);
+                scoreRender();
+            }
+        }
+    }
+
+    // checkAnswer
+
+    function checkAnswer(answer){
+        if( answer == questions[runningQuestion].correct){
+// answer is correct
+            score++;
+// change progress color to green
+            answerIsCorrect();
+        }else{
+// answer is wrong
+// change progress color to red
+            answerIsWrong();
+        }
+        count = 0;
+        if(runningQuestion < lastQuestion){
+            runningQuestion++;
+            renderQuestion();
+        }else{
+// end the quiz and show the score
+            clearInterval(TIMER);
+            scoreRender();
+        }
+    }
+
+    // answer is correct
+    function answerIsCorrect(){
+        document.getElementById(runningQuestion).style.backgroundColor = "#0f0";
+    }
+
+    // answer is Wrong
+    function answerIsWrong(){
+        document.getElementById(runningQuestion).style.backgroundColor = "#f00";
+    }
+
+    // score render
+    function scoreRender(){
+        scoreDiv.style.display = "block";
+
+// calculate the amount of question percent answered by the user
+        const scorePerCent = Math.round(100 * score/questions.length);
+
+// choose the image based on the scorePerCent
+        let img = (scorePerCent >= 80) ? "5.png" :
+            (scorePerCent >= 60) ? "4.png" :
+                (scorePerCent >= 40) ? "3.png" :
+                    (scorePerCent >= 20) ? "2.png" :
+                        "1.png";
+
+        scoreDiv.innerHTML = "<img src="+ img +">";
+        scoreDiv.innerHTML += "<p>"+ scorePerCent +"%</p>";}
+
+</script>
+</html>
+
+
+
+

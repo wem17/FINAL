@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Quiz</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="container">
+    <div id="start">Start Quiz!</div>
+    <div id="quiz" style="display: none">
+        <div id="question"></div>
+        <div id="qImg"></div>
+        <div id="choices">
+            <div class="choice" id="A" onclick="checkAnswer('A')"></div>
+            <div class="choice" id="B" onclick="checkAnswer('B')"></div>
+            <div class="choice" id="C" onclick="checkAnswer('C')"></div>
+        </div>
+        <div id="timer">
+            <div id="counter"></div>
+            <div id="btimeGauge"></div>
+            <div id="timeGauge"></div>
+        </div>
+        <div id="progress"></div>
+    </div>
+    <div id="scoreContainer" style="display: none"></div>
+</div>
+<script src="quiz.js"></script>
+</body>
+<script>
+    // select all elements
+    const start = document.getElementById("start");
+    const quiz = document.getElementById("quiz");
+    const question = document.getElementById("question");
+    const qImg = document.getElementById("qImg");
+    const choiceA = document.getElementById("A");
+    const choiceB = document.getElementById("B");
+    const choiceC = document.getElementById("C");
+    const counter = document.getElementById("counter");
+    const timeGauge = document.getElementById("timeGauge");
+    const progress = document.getElementById("progress");
+    const scoreDiv = document.getElementById("scoreContainer");
+
+    // create our questions
+    let questions = [
+        {
+            question : "What year did the berlin wall fall?",
+            imgSrc : "fallwall.jpg",
+            choiceA : "Nov 1991",
+            choiceB : "Nov 1989",
+            choiceC : "Nov 2009",
+            correct : "A"
+        },{
+            question : "How many sections was berlin divided into?",
+            imgSrc : "zones.png",
+            choiceA : "0",
+            choiceB : "4",
+            choiceC : "2",
+            correct : "B"
+        },{
+            question : "what were the four countries that occupied berlin ?",
+            imgSrc : "sectors.jpeg",
+            choiceA : "ITL ES US ET",
+            choiceB : "US USSR ITL ES",
+            choiceC : "ENG US USSR Fr",
+            correct : "C"
+        },
+        {
+            question : "Year that berlin allowed travel without restrictions",
+            imgSrc : "berlin.jpg",
+            choiceA : "Nov 1989",
+            choiceB : "Nov 1999",
+            choiceC : "Nov 2009",
+            correct : "A"
+        },
+        {
+            question : "Was Einstein born in Germany?",
+            imgSrc : "genius.jpg",
+            choiceA : "No",
+            choiceB : "Yes",
+            choiceC : "maybe",
+            correct : "B"
+        },{
+            question : "What party was schroeder?",
+            imgSrc : "schro.jpg",
+            choiceA : "republican",
+            choiceB : "Social democrat",
+            choiceC : "communist",
+            correct : "B"
+        }, {
+            question : "First female chancellor's name is",
+            imgSrc : "AM.jpg",
+            choiceA : "Angela Merkel ",
+            choiceB : "Adolf Hitler",
+            choiceC : "Anne Frank",
+            correct : "A"
+        },{
+            question : "What year was the first female chancellor elected?",
+            imgSrc : "AM.jpg",
+            choiceA : "1995",
+            choiceB : "2000",
+            choiceC : "2005",
+            correct : "C"
+        },{
+            question : "Which of these is true?",
+            imgSrc : "guten.jpg",
+            choiceA : "US helped Germany during WW2",
+            choiceB : "Germany helped US during WW2",
+            choiceC : "First printed book was German",
+            correct : "C"
+        },{
+            question : "What is the chancellor's office in berlin known as?",
+            imgSrc : "Washin.jpg",
+            choiceA : "The spending machine",
+            choiceB : "The money machine",
+            choiceC : "The washing machine",
+            correct : "C"
+        }
+    ];
+
+    // create some variables
+
+    const lastQuestion = questions.length - 1;
+    let runningQuestion = 0;
+    let count = 0;
+    const questionTime = 10; // 10s
+    const gaugeWidth = 150; // 150px
+    const gaugeUnit = gaugeWidth / questionTime;
+    let TIMER;
+    let score = 0;
+
+    // render a question
+    function renderQuestion(){
+        let q = questions[runningQuestion];
+
+        question.innerHTML = "<p>"+ q.question +"</p>";
+        qImg.innerHTML = "<img src="+ q.imgSrc +">";
+        choiceA.innerHTML = q.choiceA;
+        choiceB.innerHTML = q.choiceB;
+        choiceC.innerHTML = q.choiceC;
+    }
+
+    start.addEventListener("click",startQuiz);
+
+    // start quiz
+    function startQuiz(){
+        start.style.display = "none";
+        renderQuestion();
+        quiz.style.display = "block";
+        renderProgress();
+        renderCounter();
+        TIMER = setInterval(renderCounter,1000); // 1000ms = 1s
+    }
+
+    // render progress
+    function renderProgress(){
+        for(let qIndex = 0; qIndex <= lastQuestion; qIndex++){
+            progress.innerHTML += "<div class='prog' id="+ qIndex +"></div>";
+        }
+    }
+
+    // counter render
+
+    function renderCounter(){
+        if(count <= questionTime){
+            counter.innerHTML = count;
+            timeGauge.style.width = count * gaugeUnit + "px";
+            count++
+        }else{
+            count = 0;
+// change progress color to red
+            answerIsWrong();
+            if(runningQuestion < lastQuestion){
+                runningQuestion++;
+                renderQuestion();
+            }else{
+// end the quiz and show the score
+                clearInterval(TIMER);
+                scoreRender();
+            }
+        }
+    }
+
+    // checkAnswer
+
+    function checkAnswer(answer){
+        if( answer == questions[runningQuestion].correct){
+// answer is correct
+            score++;
+// change progress color to green
+            answerIsCorrect();
+        }else{
+// answer is wrong
+// change progress color to red
+            answerIsWrong();
+        }
+        count = 0;
+        if(runningQuestion < lastQuestion){
+            runningQuestion++;
+            renderQuestion();
+        }else{
+// end the quiz and show the score
+            clearInterval(TIMER);
+            scoreRender();
+        }
+    }
+
+    // answer is correct
+    function answerIsCorrect(){
+        document.getElementById(runningQuestion).style.backgroundColor = "#0f0";
+    }
+
+    // answer is Wrong
+    function answerIsWrong(){
+        document.getElementById(runningQuestion).style.backgroundColor = "#f00";
+    }
+
+    // score render
+    function scoreRender(){
+        scoreDiv.style.display = "block";
+
+// calculate the amount of question percent answered by the user
+        const scorePerCent = Math.round(100 * score/questions.length);
+
+// choose the image based on the scorePerCent
+        let img = (scorePerCent >= 80) ? "5.png" :
+            (scorePerCent >= 60) ? "4.png" :
+                (scorePerCent >= 40) ? "3.png" :
+                    (scorePerCent >= 20) ? "2.png" :
+                        "1.png";
+
+        scoreDiv.innerHTML = "<img src="+ img +">";
+        scoreDiv.innerHTML += "<p>"+ scorePerCent +"%</p>";}
+
+</script>
+</html>
+
+
+
+
